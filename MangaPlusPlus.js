@@ -195,6 +195,15 @@ div[class*="SideMenu-module_sideMenu_"] {
 div[class*="SideMenu-module_modal_"] {
     background: var(--color-dark-gray) !important;
 }
+
+/*
+ * HEADER: LANGUAGE BUTTON
+ */
+div[class*="Navigation-module_languageButton"]
+{
+    padding: 0 !important;
+    margin: 0 1em 1em auto !important;
+}
     
 /*
  * HEADER: SETTINGS BUTTON
