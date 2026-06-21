@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         MangaPlusPlus
 // @namespace    http://tampermonkey.net/
-// @version      1.6
+// @version      2.0
 // @description  Overhaul for the MangaPlus reader
-// @author       Fixed by Gemini Vibecoding
+// @author       Vibecoded by Gemini
 // @match        https://mangaplus.shueisha.co.jp/*
 // @run-at       document-body
 // @grant        none
@@ -34,54 +34,27 @@
 /*
  * FIX FOR BACKGROUND COLOR ON FIRST PAGE
  */
-.zao-surface
-{
+.zao-surface {
     background-color: transparent !important;
 }
 
 /*
- * SETTINGS MODAL (MangaPlus Original Modal) - FIX
- * Forces the modal to center screen and break out of sidebar overflow
+ * HIDE NATIVE SETTINGS AND SIDE MENU
+ * (We hide the visual elements, but keep the data in DOM so we can extract it)
  */
-div[class*="Modal-module_modal"]
-{
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    z-index: 10001 !important;
-    background-color: var(--color-dark-gray) !important;
-    /* Ensure default background doesn't override */
-    background: #191919 !important;
-    border: 1px solid var(--color-gray) !important;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5) !important;
-    max-height: 90vh !important;
-    overflow-y: auto !important;
-    width: auto !important;
-    min-width: 300px;
-    right: unset !important;
-    bottom: unset !important;
-    margin: 0 !important;
-}
-
-/*
- * SETTINGS MODAL OVERLAY (Background)
- * Forces the dim background to cover the whole screen
- */
-div[class*="Modal-module_sideMenuBackground"]
-{
-    position: fixed !important;
-    top: 0 !important; left: 0 !important;
-    width: 100vw !important; height: 100vh !important;
-    z-index: 10000 !important;
-    background-color: rgba(0,0,0,0.7) !important;
+div[class*="Navigation-module_settingsContainer_"],
+div[class*="SideMenu-module_sideMenu_"],
+div[class*="SideMenu-module_appear_"],
+div[class*="SideMenu-module_sideMenuBackground_"] {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
 }
 
 /*
  * LANGUAGE MODAL FIX
  */
-div[class*="LanguageModal-module_modal"]
-{
+div[class*="LanguageModal-module_modal"] {
     position: fixed !important;
     top: 50% !important;
     left: 50% !important;
@@ -101,8 +74,7 @@ div[class*="LanguageModal-module_modal"]
 /*
  * HEADER / SIDEBAR CONTAINER
  */
-div[class*="Navigation-module_header_"]
-{
+div[class*="Navigation-module_header_"] {
     display: flex !important;
     flex-direction: column !important;
     align-items: stretch !important;
@@ -125,8 +97,7 @@ div[class*="Navigation-module_header_"]
  * INTERNAL WRAPPERS FIX
  */
 div[class*="Navigation-module_header_"] > div[class*="Container-module_container"],
-div[class*="Navigation-module_headerContainer"]
-{
+div[class*="Navigation-module_headerContainer"] {
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
@@ -140,40 +111,33 @@ div[class*="Navigation-module_headerContainer"]
 /*
  * HEADER LEFT (Logo + Title)
  */
-div[class*="Navigation-module_headerLeft"]
-{
+div[class*="Navigation-module_headerLeft"] {
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
-    align-items: center !important;
+    align-items: stretch !important;
 }
 
 /*
  * HEADER RIGHT (Language + Settings)
  */
-div[class*="Navigation-module_headerRight"]
-{
+div[class*="Navigation-module_headerRight"] {
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
 }
 
-
-.mpp-menu-collapsed div[class*="Navigation-module_header_"]
-{
+.mpp-menu-collapsed div[class*="Navigation-module_header_"] {
     display: none !important;
 }
-.mpp-no-progress-bar div[class*="Navigation-module_header_"]
-{
+.mpp-no-progress-bar div[class*="Navigation-module_header_"] {
     height: calc(var(--vh, 1vh) * 100) !important;
 }
-
 
 /*
  * MENU BUTTON
  */
-.mpp-expand
-{
+.mpp-expand {
     position: absolute;
     display: none;
     right: 8px;
@@ -186,21 +150,17 @@ div[class*="Navigation-module_headerRight"]
     opacity: 0.5;
     cursor: pointer;
 }
-.mpp-expand:hover
-{
+.mpp-expand:hover {
     opacity: 1;
 }
-.mpp-menu-collapsed .mpp-expand
-{
+.mpp-menu-collapsed .mpp-expand {
     display: block;
 }
-
 
 /*
  * HEADER: LOGO AND COLLAPSE
  */
-.mpp-collapse
-{
+.mpp-collapse {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -212,8 +172,7 @@ div[class*="Navigation-module_headerRight"]
     width: 100%;
     box-sizing: border-box;
 }
-div[class*="Navigation-module_imageContainer"]
-{
+div[class*="Navigation-module_imageContainer"] {
     display: flex !important;
     flex-direction: row !important;
     margin: 0 !important;
@@ -222,28 +181,25 @@ div[class*="Navigation-module_imageContainer"]
     justify-content: center !important;
     border-bottom: 1px solid var(--color-gray) !important;
 }
-div[class*="Navigation-module_imageContainer"] a
-{
+div[class*="Navigation-module_imageContainer"] a {
     flex-grow: 1 !important;
 }
 div[class*="Navigation-module_imageContainer"] a:hover,
-.mpp-collapse:hover
-{
+.mpp-collapse:hover {
     background-color: var(--color-gray) !important;
 }
-img[class*="Navigation-module_logo"]
-{
+img[class*="Navigation-module_logo"] {
     margin: 0 auto !important;
-    padding: 20px 0 !important;
+    padding: 5px 0 !important;
     display: block !important;
+    height: auto !important;
+    width: 36% !important;
 }
-
 
 /*
  * HEADER: SERIES TITLE
  */
-div[class*="Navigation-module_headerLeft"] > a[href*="/titles/"]
-{
+div[class*="Navigation-module_headerLeft"] > a[href*="/titles/"] {
     display: block !important;
     flex-direction: row !important;
     align-items: start !important;
@@ -256,10 +212,10 @@ div[class*="Navigation-module_headerLeft"] > a[href*="/titles/"]
     height: auto !important;
     min-height: min-content !important;
     overflow: visible !important;
+    text-align: center;
 }
 
-div[class*="Navigation-module_headerLeft"] h1
-{
+div[class*="Navigation-module_headerLeft"] h1 {
     font-size: 1.2em !important;
     line-height: 1.4em !important;
     padding: 0 !important;
@@ -271,237 +227,136 @@ div[class*="Navigation-module_headerLeft"] h1
 }
 
 /*
- * HEADER: CHAPTER TITLE (No Arrow)
+ * HEADER: CHAPTER TITLE WRAPPER FIX
  */
-div[class*="Navigation-module_chapterTitleWrapper"]
-{
-    width: 100%;
-    padding: 1em !important;
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: center !important;
-    margin-top: 8px;
-    box-sizing: border-box;
-    position: relative !important;
-    min-height: 3em !important;
-}
-
-/* Text Styling */
-p[class*="Navigation-module_chapterTitle"]
-{
-    width: auto !important;
-    display: block !important;
-    font-size: 1.1em !important;
-    margin: 0 !important;
+div[class*="Navigation-module_chapterTitleWrapper"] {
+    border: 0.5px solid var(--color-gray) !important;
+    border-radius: 0 !important;
     padding: 0 !important;
-    flex-grow: 0 !important;
-    line-height: 1 !important;
+    background-color: transparent !important;
+    gap: 0 !important;
 }
 
-/* Remove Arrow */
-img[class*="Navigation-module_downArrowIcon"]
-{
-    display: none !important;
-}
-
-/* Dropdown Container Fix */
-div[class*="Navigation-module_chapterTitleWrapper"] > div
-{
-    position: absolute !important;
-    top: 100% !important;
-    left: 0 !important;
-    width: 100% !important;
-    z-index: 100 !important;
-}
-
-div[class*="Navigation-module_chapterTitleWrapper"]:hover,
-div[class*="Navigation-module_headerLeft"] > a:hover
-{
-    opacity: var(--hover-opacity, 0.7);
-}
-p[class*="Navigation-module_chapterTitle"]::after
-{
+/* Hide the Native Texts completely */
+p[class*="Navigation-module_chapterTitle"],
+img[class*="Navigation-module_downArrowIcon"] {
     display: none !important;
 }
 
 /*
- * HEADER: LANGUAGE BUTTON (FIXED v7 - With Text)
+ * HEADER: LANGUAGE BUTTON (With Text)
  */
-div[class*="Navigation-module_languageButton"]
-{
+div[class*="Navigation-module_languageButton"] {
     display: flex !important;
     align-items: center !important;
-    justify-content: flex-end !important; /* Icon to right */
-    padding: 1em !important;
+    justify-content: flex-end !important;
     margin: 0 !important;
-    border-top: 1px solid var(--color-gray) !important;
     width: 100% !important;
     box-sizing: border-box !important;
+    border: none !important;
 }
-
-div[class*="Navigation-module_languageButton"]::before
-{
-    content: "Language";
-    margin-right: auto; /* Pushes icon to the right */
-    font-size: 1em;
-    font-family: Roboto, sans-serif;
-    color: #fff;
-}
-
-/* Ensure inner SVG container doesn't break flex */
-div[class*="LanguageButton-module_svgContainer"]
-{
-    flex-grow: 0 !important;
-}
-
-div[class*="Navigation-module_languageButton"]:hover
-{
-    background-color: var(--color-gray) !important;
-    cursor: pointer;
-}
-
-/*
- * HEADER: SETTINGS BUTTON REPLACEMENT
- */
-div[class*="Navigation-module_settingsContainer"]
-{
-    flex-grow: 0 !important;
-    border-top: 1px solid var(--color-gray) !important;
-    padding: 1em !important;
-    flex-basis: unset !important;
-    width: 100% !important;
-    box-sizing: border-box;
-    display: flex !important;
-    align-items: center !important;
-    cursor: pointer;
-    text-align: left !important;
-    position: relative !important;
-}
-
-/* Hide the Gear Icon */
-img[class*="Navigation-module_settingLogo"]
-{
-    display: none !important;
-}
-
-/* Add Text "MangaPlus Settings" */
-div[class*="Navigation-module_settingsContainer"]::before
-{
-    content: "MangaPlus Settings";
-    font-size: 1em;
-    font-family: Roboto, sans-serif;
-    color: #fff;
-    text-transform: none;
-    font-weight: normal;
-}
-
-div[class*="Navigation-module_settingsContainer"]:hover
-{
-    background-color: var(--color-gray) !important;
-}
-
-/*
- * Settings Modal Injection Anchor Fix
- * Ensures the internal anchor for the modal doesn't break layout
- */
-div[class*="Navigation-module_settingsContainer"] > div
-{
-    position: static !important;
-}
-
-
-div[class*="Navigation-module_kebabMenu"]
-{
-    margin: 0 !important;
+div[class*="Navigation-module_languageButton_"] {
     padding: 0 !important;
-    width: max-content !important;
 }
-div[class*="Navigation-module_kebabMenu"]::before
-{
-    content: "Settings...";
-    margin-right: 1em;
+div[class*="Navigation-module_languageButton"]::before {
+    content: "Language";
+    margin-right: auto;
     font-size: 1em;
-    font-weight: normal;
+    font-family: Roboto, sans-serif;
+    color: #fff;
 }
-div[class*="Navigation-module_circle"]
-{
-    display: none !important;
+div[class*="LanguageButton-module_svgContainer"] {
+    flex-grow: 0 !important;
+}
+div[class*="Navigation-module_languageButton"]:hover {
+    background-color: var(--color-gray) !important;
+    cursor: pointer;
 }
 
 /*
  * COMMENTS
  */
-div.mpp-comments
-{
+div.mpp-comments {
     border-top: 1px solid var(--color-gray);
     flex-shrink: 0;
 }
-div.mpp-comments a
-{
+div.mpp-comments a {
     display: block;
     padding: 1em;
     font-weight: normal;
+    text-align: center;
 }
-div.mpp-comments a:hover
-{
+div.mpp-comments a:hover {
     background-color: var(--color-gray);
 }
 
 /*
- * CUSTOM SETTINGS
+ * CUSTOM SETTINGS (SELECT MENUS)
  */
-div.mpp-settings
-{
+div.mpp-settings {
     border-top: 1px solid var(--color-gray);
     padding: 1em;
-    flex-grow: 99999;
+    flex-grow: 1; /* Pushes everything below to bottom */
     overflow-y: auto;
 }
-div.mpp-settings h2
-{
+div.mpp-settings h2 {
     font-size: 1em;
-    margin-bottom: 1em;
+    margin-bottom: 0.5em;
     font-weight: normal;
-    animation: unset !important;
-    -webkit-animation: unset !important;
-    text-shadow: unset !important;
-    text-transform: unset !important;
-    margin-top: 0 !important;
     font-family: Roboto,Sans-Serif;
     color: #fff;
+    margin-top: 0 !important;
 }
-
-div.mpp-settings p
-{
+.mpp-option-container {
+    margin-top: 1em;
+    display: flex;
+    flex-direction: column;
+}
+.mpp-option-container label {
     color: #ccc;
-    background: #0004;
-    border: 1px solid var(--color-gray);
-    border-radius: 8px;
-    padding: 0.75em 1em;
-    margin-top: 0.5em;
-    display: block;
-    font-weight: normal;
-    cursor: pointer;
     font-size: 0.9em;
-    user-select: none;
+    margin-bottom: 0.5em;
+    font-family: Roboto, Sans-Serif;
+}
+.mpp-select {
+    background: #111;
+    color: #fff;
+    border: 1px solid var(--color-gray);
+    padding: 0.6em;
+    border-radius: 4px;
+    font-family: Roboto, Sans-Serif;
+    font-size: 0.9em;
+    outline: none;
+    cursor: pointer;
+}
+.mpp-select:hover {
+    border-color: #888;
+}
+.mpp-select:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+.mpp-disabled label {
+    opacity: 0.3;
 }
 
-div.mpp-settings p:hover
-{
-    background-color: var(--color-gray);
+#mpp-chapter-select {
+    border-radius: 0 !important;
+    border: none !important;
+    background-color: rgb(25, 25, 25) !important;
 }
-div.mpp-nav
-{
+
+/*
+ * NAVIGATION AREA & PAGE NUMBER
+ */
+div.mpp-nav {
     display: flex;
     flex-direction: row;
     align-items: stretch;
     border-top: 1px solid var(--color-gray);
     flex-shrink: 0;
 }
-
-div.mpp-nav-btn
-{
+div.mpp-nav-btn {
     width: 50%;
     flex-grow: 1;
     text-align: center;
@@ -509,112 +364,88 @@ div.mpp-nav-btn
     cursor: pointer;
     user-select: none;
 }
-div.mpp-nav-btn:first-child
-{
+div.mpp-nav-btn:first-child {
     border-right: 1px solid var(--color-gray);
 }
-div.mpp-nav-btn:hover
-{
+div.mpp-nav-btn:hover {
     background-color: var(--color-gray);
 }
-.mpp-disabled,
-.mpp-disabled:hover
-{
+.mpp-disabled, .mpp-disabled:hover {
     color: var(--color-dark-gray) !important;
     background-color: var(--color-gray-lt) !important;
     cursor: default;
 }
 
-
-/*
- * PAGE NUMBER
- */
-p[class*="Viewer-module_pageNumber"]
-{
+p[class*="Viewer-module_pageNumber"] {
     font-size: 1em !important;
-    position: unset !important;
-    bottom: calc(10px + 1em) !important;
+    position: static !important;
     width: 100% !important;
-    right: 0 !important;
-    line-height: unset !important;
     text-align: center;
-    padding: 0.5em 0;
+    padding: 15px 0 !important;
+    margin: 0 !important;
+    color: #ccc !important;
+    background: transparent !important;
+    border-top: 1px solid var(--color-gray) !important;
+    flex-shrink: 0;
 }
-
 
 /*
  * FOOTER
  */
-div[class*="Viewer-module_footer"]
-{
+div[class*="Viewer-module_footer"] {
     height: 0.6em !important;
     bottom: 0 !important;
     z-index: 4 !important;
     position: relative !important;
     background-color: var(--color-gray) !important;
     padding: 0;
-    position: relative;
 }
-div[class*="Viewer-module_footer"] div[class*="Viewer-module_container"]
-{
+div[class*="Viewer-module_footer"] div[class*="Viewer-module_container"] {
     margin-top: 0;
 }
-div[class*="Viewer-module_slider"]
-{
+div[class*="Viewer-module_slider"] {
     width: 100% !important;
     left: 0 !important;
 }
-.mpp-no-progress-bar div[class*="Viewer-module_footer"]
-{
+.mpp-no-progress-bar div[class*="Viewer-module_footer"] {
     display: none !important
 }
-
 
 /*
  * FOOTER: SLIDER COLOR
  */
-.zao-slider-button::before
-{
+.zao-slider-button::before {
     background-color: var(--color-black) !important;
 }
 .zao-slider-button,
-.zao-slider-bar-previous
-{
+.zao-slider-bar-previous {
     background-color: var(--color-gray-lt) !important;
 }
-.zao-slider-bar-next
-{
+.zao-slider-bar-next {
     background-color: var(--color-gray) !important;
 }
 
-
 /*
- * HIDE COMMENTS
+ * HIDE NATIVE COMMENTS
  */
-div[class*="Viewer-module_container"] a
-{
+div[class*="Viewer-module_container"] a {
     display: none !important;
 }
-
 
 /*
  * IMAGE CONTAINER
  */
-div[class*="Viewer-module_viewerContainer"]
-{
+div[class*="Viewer-module_viewerContainer"] {
     height: calc(var(--vh, 1vh) * 100 - 0.6em) !important;
     width: calc(100% - 18em - 8px) !important;
 }
-.mpp-menu-collapsed div[class*="Viewer-module_viewerContainer"]
-{
+.mpp-menu-collapsed div[class*="Viewer-module_viewerContainer"] {
     width: 100vw !important;
 }
-.mpp-no-progress-bar div[class*="Viewer-module_viewerContainer"]
-{
+.mpp-no-progress-bar div[class*="Viewer-module_viewerContainer"] {
     height: calc(var(--vh, 1vh) * 100) !important;
 }
-.mpp-alt-nav img.zao-image
-{
+.mpp-alt-nav img.zao-image {
     cursor: pointer !important;
 }
 `);
@@ -627,224 +458,201 @@ div[class*="Viewer-module_viewerContainer"]
     const MPP_SHOW_PROG = "Progress Bar";
     const MPP_PRELOAD = "Preload Images";
 
-    // Used for options tracking
+    // User Requested Preload Options
     const PRELOAD_OPTS = ["Default (5)", "10 Pages", "20 Pages", "50 Pages", "100 Pages", "All"];
+
     function getPreloadCount(val) {
         switch(val) {
             case "10 Pages": return 10;
             case "20 Pages": return 20;
             case "50 Pages": return 50;
             case "100 Pages": return 100;
-            case "All": return 9999;
+            case "All": return 999;
             default: return 5;
         }
     }
 
-
     /*
      * Class that checks against a condition
      */
-    class MppEnabledCondition
-    {
-        constructor(enabledCondition, expectedResult)
-        {
+    class MppEnabledCondition {
+        constructor(enabledCondition, expectedResult) {
             this.name = enabledCondition;
             this.expectedResult = expectedResult;
         }
 
-        isEnabled()
-        {
+        isEnabled() {
             var result = window.localStorage[this.name];
+            if (!result && this.expectedResult === "horizontal") return true;
             return result == this.expectedResult;
         }
     }
     const READ_HORIZONTAL = new MppEnabledCondition("viewerMode", "horizontal");
 
     /*
-     * Class that represents an option in the sidebar
+     * Class that represents an option in the sidebar (Select Menu)
      */
-    class MppAdvancedOption
-    {
-        constructor(name, enabledCondition, options, disabledIndex, defaultIndex, delegate = () => {})
-        {
+    class MppAdvancedOption {
+        constructor(name, storageKey, enabledCondition, options, optionValues, disabledIndex, defaultIndex, delegate = () => {}) {
             this.name = name;
-            this.id = "mpp-" + name.toLowerCase().replace(/ /g, '-');
-            this.valueId = this.id + "-value";
+            this.storageKey = storageKey;
             this.options = options;
+            this.optionValues = optionValues;
             this.disabledOption = disabledIndex;
             this.defaultOption = defaultIndex;
-            this.currentOption = parseInt(window.localStorage[this.id]) || this.defaultOption;
+
+            let savedValue = window.localStorage.getItem(this.storageKey);
+            let savedIndex = this.optionValues.indexOf(savedValue);
+
+            if(savedIndex === -1) {
+                savedIndex = this.defaultOption;
+                window.localStorage.setItem(this.storageKey, this.optionValues[savedIndex]);
+            }
+
+            this.currentOption = savedIndex;
             this.enabledCondition = enabledCondition;
             this.element = null;
-            this.valueElement = null;
+            this.selectElement = null;
             this.delegate = delegate;
         }
 
-        initHtml(parent)
-        {
+        initHtml(parent) {
             var enabled = this.canBeChanged();
-            var html = document.createElement("p");
-            html.id = this.id;
-            html.className = enabled ? "" : "mpp-disabled";
-            html.innerHTML = `${this.name}: <span id="${this.valueId}">${this.getValue()}</span>`;
+            var container = document.createElement("div");
+            container.className = "mpp-option-container";
+            if (!enabled) container.className += " mpp-disabled";
 
-            this.element = parent.appendChild(html);
-            this.valueElement = document.getElementById(this.valueId);
+            var label = document.createElement("label");
+            label.innerText = this.name;
+
+            var select = document.createElement("select");
+            select.className = "mpp-select";
+            select.disabled = !enabled;
+
+            this.options.forEach((opt, idx) => {
+                var option = document.createElement("option");
+                option.value = idx;
+                option.innerText = opt;
+                if (idx === (enabled ? this.currentOption : this.disabledOption)) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+
+            select.addEventListener("change", (e) => {
+                this.currentOption = parseInt(e.target.value);
+                window.localStorage.setItem(this.storageKey, this.optionValues[this.currentOption]);
+                this.update(true);
+            });
+
+            container.appendChild(label);
+            container.appendChild(select);
+            parent.appendChild(container);
+
+            this.element = container;
+            this.selectElement = select;
         }
 
-        canBeChanged()
-        {
+        canBeChanged() {
             return this.enabledCondition ? this.enabledCondition.isEnabled() : true;
         }
 
-        getValue()
-        {
-            return this.options[this.canBeChanged() ? this.currentOption : this.disabledOption];
+        getValue() {
+            return this.optionValues[this.canBeChanged() ? this.currentOption : this.disabledOption];
         }
 
-        update()
-        {
-            this.element.className = this.canBeChanged() ? "" : "mpp-disabled";
-            this.valueElement.innerHTML = this.getValue();
-            this.delegate();
-        }
-
-        next()
-        {
-            this.currentOption = (this.currentOption + 1) % this.options.length;
-            window.localStorage[this.id] = this.currentOption;
+        update(userChanged = false) {
+            var enabled = this.canBeChanged();
+            if (this.element) {
+                this.element.className = "mpp-option-container" + (enabled ? "" : " mpp-disabled");
+            }
+            if (this.selectElement) {
+                this.selectElement.disabled = !enabled;
+                this.selectElement.value = enabled ? this.currentOption : this.disabledOption;
+            }
+            this.delegate(userChanged);
         }
     }
 
     /*
      * Class that collects and updates options
      */
-    class MppAdvancedOptionCollection
-    {
-        constructor()
-        {
+    class MppAdvancedOptionCollection {
+        constructor() {
             this.options = [];
         }
 
-        addOption(option)
-        {
+        addOption(option) {
             this.options.push(option);
             this[option.name] = option;
         }
 
-        update()
-        {
-            for (var i = 0; i < this.options.length; ++i)
-            {
-                this.options[i].update();
+        update() {
+            for (var i = 0; i < this.options.length; ++i) {
+                this.options[i].update(false);
             }
         }
 
-        getOption(name)
-        {
+        getOption(name) {
             return this[name];
         }
 
-        initHtml(parent)
-        {
-            var settingsElement = (function()
-                                   {
-                var html = document.createElement("div");
-                html.className = "mpp-settings";
-                html.innerHTML = "<h2>Advanced Options</h2>";
-                return parent.appendChild(html);
-            })();
+        initHtml(parent) {
+            var settingsElement = document.createElement("div");
+            settingsElement.className = "mpp-settings";
+            settingsElement.innerHTML = "<h2>Settings</h2>";
+            parent.appendChild(settingsElement);
 
-            var self = this;
-            var onclick = function()
-            {
-                if (this.canBeChanged())
-                {
-                    this.next();
-                    self.update();
-                }
-            };
-
-            for (var i = 0; i < this.options.length; ++i)
-            {
+            for (var i = 0; i < this.options.length; ++i) {
                 var option = this.options[i];
                 option.initHtml(settingsElement);
-                option.element.addEventListener("click", onclick.bind(option));
             }
 
             this.update();
         }
     };
 
-
     /* Key event */
-    function keyEvent(key)
-    {
-        var e = new KeyboardEvent("keydown",
-        {
-            code : key,
-            key: key
-        });
+    function keyEvent(key) {
+        var e = new KeyboardEvent("keydown", { code : key, key: key });
         document.dispatchEvent(e);
     }
 
-    /* Removes a class from an element */
-    function mppRemoveClass(element, className)
-    {
-        if (element.className.includes(className))
-        {
-            element.className = element.className.replace(" " + className, "");
-            return true;
+    /* Adds/Removes a class depending on condition */
+    function mppSetConditionalClass(element, condition, className) {
+        if (condition) {
+            if (!element.className.includes(className)) {
+                element.className += " " + className;
+                return true;
+            }
+        } else {
+            if (element.className.includes(className)) {
+                element.className = element.className.replace(" " + className, "").trim();
+                return true;
+            }
         }
         return false;
     }
 
-    /* Adds a class to an element */
-    function mppAddClass(element, className)
-    {
-        if(!element.className.includes(className))
-        {
-            element.className += " " + className;
-            return true;
-        }
-        return false;
-    }
-
-    /* Add or remove class from root, depending on condition */
-    function mppSetConditionalClass(element, condition, className)
-    {
-        return condition ? mppAddClass(element, className) : mppRemoveClass(element, className);
-    }
-
-    /* Add or remove class from root, depending on condition */
-    function mppSetConditionalRootClass(condition, className)
-    {
+    /* Add or remove class from root */
+    function mppSetConditionalRootClass(condition, className) {
         return mppSetConditionalClass(document.getElementById("app"), condition, className);
     }
 
-    /* Recursively search for element with class that contains a certain string */
-    function mppGetElementByPartialClassName(element, className)
-    {
-        if (element.className.includes(className))
-        {
+    /* Search for element with partial classname */
+    function mppGetElementByPartialClassName(element, className) {
+        if (!element) return null;
+        if (element.className && typeof element.className === 'string' && element.className.includes(className)) {
             return element;
         }
-
-        for (var i = 0; i < element.children.length; ++i)
-        {
+        for (var i = 0; i < element.children.length; ++i) {
             var found = mppGetElementByPartialClassName(element.children[i], className);
-            if (found)
-            {
-                return found;
-            }
+            if (found) return found;
         }
         return null;
     }
 
-    /*
-     * We retrieve the raw Viewer object instantiated by Vue using a highly robust tree search
-     * this guarantees we get it even if the userscript loads slightly delayed.
-     */
+    /* Locate MangaPlus Native Viewer instance */
     function mppGetViewerFromVue() {
         const app = document.getElementById('app');
         if (!app || !app.__vue__) return null;
@@ -859,7 +667,7 @@ div[class*="Viewer-module_viewerContainer"]
                     if (key && !key.startsWith('$') && !key.startsWith('_')) {
                         const val = vueObj[key];
                         if (val && val.surface && val.viewerData) {
-                            return val; // Returns MangaPlus' Internal Viewer class!
+                            return val;
                         }
                     }
                 }
@@ -876,10 +684,7 @@ div[class*="Viewer-module_viewerContainer"]
         return search(app.__vue__);
     }
 
-    /*
-     * Using MangaPlus's Webpack module cache, we can actively intercept class definitions
-     * and overwrite their prototypes with hooks to automatically apply our settings to any future Viewers.
-     */
+    /* Intercept Class via Webpack */
     function mppGetMangaPlusClasses() {
         if (window.mppClasses) return window.mppClasses;
 
@@ -906,17 +711,17 @@ div[class*="Viewer-module_viewerContainer"]
 
     function mppInitPreloadPatch() {
         const classes = mppGetMangaPlusClasses();
-        // If Webpack exposed the viewer class and we haven't intercepted it yet...
         if (classes && classes.Viewer && !classes.Viewer.prototype._mpp_preload_patched) {
             const origCreateSurface = classes.Viewer.prototype.createSurface;
 
             classes.Viewer.prototype.createSurface = function() {
                 const promise = origCreateSurface.apply(this, arguments);
-                window.mppViewer = this; // Capture the current viewer globally
+                window.mppViewer = this;
 
                 if (promise && typeof promise.then === 'function') {
                     promise.then(() => {
-                        const val = mppSettings.getOption(MPP_PRELOAD).getValue();
+                        // Access via localStorage to guarantee it works on initialization
+                        const val = window.localStorage.getItem("mpp-preload") || "Default (5)";
                         this.viewerData.options.preloadCount = getPreloadCount(val);
                         if (this.surface && typeof this.surface.preloadPages === 'function') {
                             this.surface.preloadPages(this.surface.currentPageNumber || 1);
@@ -929,20 +734,74 @@ div[class*="Viewer-module_viewerContainer"]
         }
     }
 
+    /* Create Custom Chapter Selector */
+    function mppInitChapterSelector(header) {
+        const titleWrapper = mppGetElementByPartialClassName(header, "Navigation-module_chapterTitleWrapper");
+        if (!titleWrapper) return;
+        if (document.getElementById('mpp-chapter-select')) return; // Already injected
 
-    /* Init html */
-    function mppInitHtml(header)
-    {
-        // Initial menu state
+        // Locate the chapter list array from the native DOM
+        let chapterItems = titleWrapper.querySelectorAll('li[class*="SideMenu-module_chapter"]');
+
+        // If the chapter list hasn't rendered yet (because Vue only mounts it on click)
+        if (chapterItems.length === 0) {
+            if (!titleWrapper.dataset.mppClicked) {
+                titleWrapper.dataset.mppClicked = "true";
+                // Programmatically click the title wrapper to force Vue to generate the chapter list
+                titleWrapper.click();
+            }
+            // Retry extraction in 50ms
+            setTimeout(() => mppInitChapterSelector(header), 50);
+            return;
+        }
+
+        // Hide native text and arrow (fallback failsafe if CSS missed something)
+        const nativeTitle = titleWrapper.querySelector('p[class*="Navigation-module_chapterTitle"]');
+        const nativeArrow = titleWrapper.querySelector('img[class*="Navigation-module_downArrowIcon"]');
+        if (nativeTitle) nativeTitle.style.display = 'none';
+        if (nativeArrow) nativeArrow.style.display = 'none';
+
+        // Build Custom Select Menu
+        const select = document.createElement('select');
+        select.id = 'mpp-chapter-select';
+        select.className = 'mpp-select';
+        select.style.width = '100%';
+        select.style.margin = '0';
+        select.style.display = 'block';
+        select.style.textAlign = 'center';
+        select.style.fontSize = '1em';
+        select.style.fontWeight = 'bold';
+
+        chapterItems.forEach((li, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.innerText = li.innerText.trim();
+            if (li.className.includes('routerActive') || li.className.includes('router-link-exact-active')) {
+                option.selected = true;
+            }
+            select.appendChild(option);
+        });
+
+        // Add event listener to jump chapters cleanly using native Vue routing attached to original LIs
+        select.addEventListener('change', (e) => {
+            const targetLi = chapterItems[parseInt(e.target.value)];
+            if (targetLi) {
+                targetLi.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+            }
+        });
+
+        // Insert at top of wrapper
+        titleWrapper.insertBefore(select, titleWrapper.firstChild);
+    }
+
+    /* Initialize Custom HTML Layout */
+    function mppInitHtml(header) {
         try {
             const collapsed = window.localStorage.getItem("mpp-menu-collapsed") === "1";
             mppSetConditionalRootClass(collapsed, "mpp-menu-collapsed");
-            if (collapsed) {
-                window.dispatchEvent(new Event('resize'));
-            }
+            if (collapsed) window.dispatchEvent(new Event('resize'));
         } catch(e) {}
 
-        // Expand menu
         const htmlExpand = document.createElement("div");
         htmlExpand.className = "mpp-expand";
         htmlExpand.innerHTML = "&#9776;";
@@ -951,12 +810,8 @@ div[class*="Viewer-module_viewerContainer"]
             localStorage.setItem("mpp-menu-collapsed", "0");
             window.dispatchEvent(new Event('resize'));
         }
+        if(header.parentElement) header.parentElement.appendChild(htmlExpand);
 
-        if(header.parentElement) {
-            header.parentElement.appendChild(htmlExpand);
-        }
-
-        // Collapse menu
         const htmlCollapse = document.createElement("div");
         htmlCollapse.className = "mpp-collapse";
         htmlCollapse.innerHTML = "&#187;";
@@ -965,14 +820,12 @@ div[class*="Viewer-module_viewerContainer"]
             localStorage.setItem("mpp-menu-collapsed", "1");
             window.dispatchEvent(new Event('resize'));
         }
+        if(header.firstChild) header.insertBefore(htmlCollapse, header.firstChild);
+        else header.appendChild(htmlCollapse);
 
-        if(header.firstChild) {
-            header.insertBefore(htmlCollapse, header.firstChild);
-        } else {
-            header.appendChild(htmlCollapse);
-        }
+        // Inject Custom Chapter Selector
+        mppInitChapterSelector(header);
 
-        // Comment link
         const htmlComments = document.createElement("div");
         htmlComments.className = "mpp-comments";
         let pathParts = window.location.pathname.split('/');
@@ -980,141 +833,124 @@ div[class*="Viewer-module_viewerContainer"]
         htmlComments.innerHTML = `<a href="/comments/${mangaId}">Comments</a>`;
         header.appendChild(htmlComments);
 
-        // Settings
+        // Inject Settings
         mppSettings.initHtml(header);
 
-        // Navigation buttons
+        // Inject Navigation Area
         const htmlNav = document.createElement("div");
         htmlNav.className = "mpp-nav";
         htmlNav.innerHTML = `<div id="mpp-nav-left" class="mpp-btn mpp-nav-btn ${READ_HORIZONTAL.isEnabled() ? "" : "mpp-disabled"}">Next</div>
                              <div id="mpp-nav-right" class="mpp-btn mpp-nav-btn ${READ_HORIZONTAL.isEnabled() ? "" : "mpp-disabled"}">Previous</div>`;
         header.appendChild(htmlNav);
 
-        document.getElementById("mpp-nav-left").addEventListener("click", function(e)
-        {
+        document.getElementById("mpp-nav-left").addEventListener("click", function(e) {
             if(READ_HORIZONTAL.isEnabled()) keyEvent("ArrowLeft");
         });
 
-        document.getElementById("mpp-nav-right").addEventListener("click", function(e)
-        {
+        document.getElementById("mpp-nav-right").addEventListener("click", function(e) {
             if(READ_HORIZONTAL.isEnabled()) keyEvent("ArrowRight");
         });
 
-        // Go forward on image click
         let zao = document.getElementsByClassName("zao")[0];
         if(zao) {
-            zao.addEventListener("click", function(e)
-            {
-                if (mppSettings[MPP_ALT_NAV].getValue() == "On")
-                {
+            zao.addEventListener("click", function(e) {
+                if (mppSettings.getOption("Alt Navigation").getValue() == "1") {
                     e.stopPropagation();
-
-                    if (e.target.className == "zao-image")
-                    {
-                        keyEvent("ArrowLeft");
-                    }
+                    if (e.target.className == "zao-image") keyEvent("ArrowLeft");
                 }
             }, true);
         }
     }
 
-    function mppInitApp()
-    {
-        if (mppLoadedUrl === window.location.href )
-        {
-            return;
-        }
+    function mppInitApp() {
+        if (mppLoadedUrl === window.location.href) return;
 
         mppLoadedUrl = window.location.href;
-        if (!window.location.href.includes("mangaplus.shueisha.co.jp/viewer/"))
-        {
-            return;
-        }
+        if (!window.location.href.includes("mangaplus.shueisha.co.jp/viewer/")) return;
 
-        var interval = setInterval(function()
-        {
-            mppInitPreloadPatch(); // Hook into webpack continuously until valid!
+        var interval = setInterval(function() {
+            mppInitPreloadPatch();
 
             var header = mppGetElementByPartialClassName(document.getElementById("app"), "Navigation-module_header_");
-            if (header)
-            {
+            if (header && document.querySelector('.zao')) {
                 clearInterval(interval);
                 mppInitHtml(header);
             }
         }, 50);
     }
 
-
-
     var mppLoadedUrl = null;
 
-
-    /* Settings */
-    var mppSettings = (function()
-    {
+    /* SETTINGS BUILDER */
+    var mppSettings = (function() {
         var settings = new MppAdvancedOptionCollection();
 
-        settings.addOption(new MppAdvancedOption(MPP_ALT_NAV, READ_HORIZONTAL, ["Off", "On"], 0, 0, function()
-        {
-            mppSetConditionalRootClass(mppSettings[MPP_ALT_NAV].getValue() == "On", "mpp-alt-nav");
-        }));
+        // NATIVE: Reading Direction
+        settings.addOption(new MppAdvancedOption(
+            "Reading Direction", "viewerMode", null,
+            ["Horizontal", "Vertical"], ["horizontal", "vertical"], 0, 0,
+            function(userChanged) { if (userChanged) location.reload(); }
+        ));
 
-        settings.addOption(new MppAdvancedOption(MPP_SHOW_PROG, READ_HORIZONTAL, ["Off", "On"], 0, 0, function()
-        {
-            if (mppSetConditionalRootClass(settings.getOption(MPP_SHOW_PROG).getValue() == "Off", "mpp-no-progress-bar"))
-            {
-                window.dispatchEvent(new Event('resize'));
+        // NATIVE: Image Quality
+        settings.addOption(new MppAdvancedOption(
+            "Image Quality", "imageQuality", null,
+            ["High", "Low"], ["super_high", "low"], 0, 0,
+            function(userChanged) { if (userChanged) location.reload(); }
+        ));
+
+        // CUSTOM: Alt Navigation
+        settings.addOption(new MppAdvancedOption(
+            "Alt Navigation", "mpp-alt-navigation", READ_HORIZONTAL,
+            ["Off", "On"], ["0", "1"], 0, 0,
+            function() { mppSetConditionalRootClass(this.getValue() === "1", "mpp-alt-nav"); }
+        ));
+
+        // CUSTOM: Progress Bar
+        settings.addOption(new MppAdvancedOption(
+            "Progress Bar", "mpp-progress-bar", READ_HORIZONTAL,
+            ["Off", "On"], ["0", "1"], 0, 0,
+            function() {
+                if (mppSetConditionalRootClass(this.getValue() === "0", "mpp-no-progress-bar")) {
+                    window.dispatchEvent(new Event('resize'));
+                }
             }
-        }));
+        ));
 
-        settings.addOption(new MppAdvancedOption(MPP_PRELOAD, null, PRELOAD_OPTS, 0, 0, function()
-        {
-            if (!window.mppViewer) window.mppViewer = mppGetViewerFromVue();
-
-            if (window.mppViewer && window.mppViewer.surface) {
-                const count = getPreloadCount(this.getValue());
-                window.mppViewer.viewerData.options.preloadCount = count;
-                // Re-trigger preload queue with the new limit
-                window.mppViewer.surface.preloadPages(window.mppViewer.surface.currentPageNumber || 1);
+        // CUSTOM: Preload Images
+        settings.addOption(new MppAdvancedOption(
+            "Preload Images", "mpp-preload", null,
+            PRELOAD_OPTS, PRELOAD_OPTS, 0, 0,
+            function(userChanged) {
+                if (userChanged) location.reload();
             }
-        }));
+        ));
 
         return settings;
     })();
 
 
-    /* HTML */
+    /* LISTENERS */
     window.addEventListener("load", mppInitApp);
     window.addEventListener("popstate", mppInitApp);
 
-    // Allow context menu
     window.addEventListener("contextmenu", e => { e.stopPropagation(); }, true);
 
-    // Allow middle mouse scrolling
-    document.addEventListener("mousedown", function(e)
-    {
+    document.addEventListener("mousedown", function(e) {
         if (e && (e.which == 2 || e.button == 4 )) e.stopPropagation();
     }, true);
 
-    // Allow page refresh
-    document.addEventListener("keydown", function(e)
-    {
+    document.addEventListener("keydown", function(e) {
         if (e.key == "BrowserRefresh" || e.key == "F5" || e.key == "F11") e.stopPropagation();
     }, true);
 
-    // Refresh UI
-    document.addEventListener("click", function(e)
-    {
-        if (mppLoadedUrl)
-        {
-            setTimeout(() =>
-            {
-                if (mppLoadedUrl != window.location.href)
-                {
+    document.addEventListener("click", function(e) {
+        if (mppLoadedUrl) {
+            setTimeout(() => {
+                if (mppLoadedUrl != window.location.href) {
                     mppInitApp();
                     return;
                 }
-
                 mppSettings.update();
                 var left = document.getElementById("mpp-nav-left");
                 var right = document.getElementById("mpp-nav-right");
@@ -1124,10 +960,9 @@ div[class*="Viewer-module_viewerContainer"]
         }
     }, true);
 
-    // Initial backup trigger
-    // In case the prototype hook misses but Preload is toggled ON from prior localStorage state
+    // Initial Preload Backup Trigger
     setTimeout(() => {
-        const val = mppSettings.getOption(MPP_PRELOAD).getValue();
+        const val = window.localStorage.getItem("mpp-preload") || "Default (5)";
         if (val !== "Default (5)") {
             if (!window.mppViewer) window.mppViewer = mppGetViewerFromVue();
             if (window.mppViewer && window.mppViewer.surface) {
@@ -1139,30 +974,25 @@ div[class*="Viewer-module_viewerContainer"]
 
 })();
 
+// Page Number Locator Loop
 (function() {
     function movePageNumber() {
         const pageNumberEl = document.querySelector('p[class*="Viewer-module_pageNumber"]');
-        if (!pageNumberEl) return;
+        const navEl = document.querySelector('.mpp-nav');
 
-        const targetContainer = document.querySelector('div[class*="Navigation-module_headerLeft"]');
-        if (!targetContainer) return;
-
-        if (targetContainer.contains(pageNumberEl)) return;
+        if (!pageNumberEl || !navEl) return;
+        if (navEl.previousSibling === pageNumberEl) return;
 
         if(pageNumberEl.parentNode) pageNumberEl.parentNode.removeChild(pageNumberEl);
-        targetContainer.appendChild(pageNumberEl);
-
-        pageNumberEl.style.position = 'static';
-        pageNumberEl.style.marginTop = '0.5em';
+        navEl.parentNode.insertBefore(pageNumberEl, navEl);
     }
 
     window.addEventListener('load', () => {
-        movePageNumber();
         let tries = 0;
         const interval = setInterval(() => {
             movePageNumber();
             tries++;
-            if (tries > 10) clearInterval(interval);
+            if (tries > 15) clearInterval(interval);
         }, 500);
     });
 })();
