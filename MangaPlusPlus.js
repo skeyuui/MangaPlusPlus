@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         MangaPlusPlus
 // @namespace    http://tampermonkey.net/
-// @version      1.5
-// @description  Overhaul for the MangaPlus reader - Fixed Settings Modal & Language Button
-// @author       Somebody (Fixed by Assistant)
+// @version      1.6
+// @description  Overhaul for the MangaPlus reader
+// @author       Fixed by Gemini Vibecoding
 // @match        https://mangaplus.shueisha.co.jp/*
 // @run-at       document-body
 // @grant        none
@@ -620,9 +620,27 @@ div[class*="Viewer-module_viewerContainer"]
 `);
 
 
-
 (function()
 {
+    /* Constants */
+    const MPP_ALT_NAV = "Alt Navigation";
+    const MPP_SHOW_PROG = "Progress Bar";
+    const MPP_PRELOAD = "Preload Images";
+
+    // Used for options tracking
+    const PRELOAD_OPTS = ["Default (5)", "10 Pages", "20 Pages", "50 Pages", "100 Pages", "All"];
+    function getPreloadCount(val) {
+        switch(val) {
+            case "10 Pages": return 10;
+            case "20 Pages": return 20;
+            case "50 Pages": return 50;
+            case "100 Pages": return 100;
+            case "All": return 9999;
+            default: return 5;
+        }
+    }
+
+
     /*
      * Class that checks against a condition
      */
@@ -640,7 +658,7 @@ div[class*="Viewer-module_viewerContainer"]
             return result == this.expectedResult;
         }
     }
-
+    const READ_HORIZONTAL = new MppEnabledCondition("viewerMode", "horizontal");
 
     /*
      * Class that represents an option in the sidebar
@@ -664,14 +682,12 @@ div[class*="Viewer-module_viewerContainer"]
 
         initHtml(parent)
         {
-            // Create html
             var enabled = this.canBeChanged();
             var html = document.createElement("p");
             html.id = this.id;
             html.className = enabled ? "" : "mpp-disabled";
             html.innerHTML = `${this.name}: <span id="${this.valueId}">${this.getValue()}</span>`;
 
-            // Set elements
             this.element = parent.appendChild(html);
             this.valueElement = document.getElementById(this.valueId);
         }
@@ -699,7 +715,6 @@ div[class*="Viewer-module_viewerContainer"]
             window.localStorage[this.id] = this.currentOption;
         }
     }
-
 
     /*
      * Class that collects and updates options
@@ -762,7 +777,6 @@ div[class*="Viewer-module_viewerContainer"]
     };
 
 
-
     /* Key event */
     function keyEvent(key)
     {
@@ -782,7 +796,6 @@ div[class*="Viewer-module_viewerContainer"]
             element.className = element.className.replace(" " + className, "");
             return true;
         }
-
         return false;
     }
 
@@ -794,7 +807,6 @@ div[class*="Viewer-module_viewerContainer"]
             element.className += " " + className;
             return true;
         }
-
         return false;
     }
 
@@ -826,9 +838,97 @@ div[class*="Viewer-module_viewerContainer"]
                 return found;
             }
         }
-
         return null;
     }
+
+    /*
+     * We retrieve the raw Viewer object instantiated by Vue using a highly robust tree search
+     * this guarantees we get it even if the userscript loads slightly delayed.
+     */
+    function mppGetViewerFromVue() {
+        const app = document.getElementById('app');
+        if (!app || !app.__vue__) return null;
+
+        const visited = new Set();
+        function search(vueObj) {
+            if (!vueObj || visited.has(vueObj)) return null;
+            visited.add(vueObj);
+
+            try {
+                for (let key in vueObj) {
+                    if (key && !key.startsWith('$') && !key.startsWith('_')) {
+                        const val = vueObj[key];
+                        if (val && val.surface && val.viewerData) {
+                            return val; // Returns MangaPlus' Internal Viewer class!
+                        }
+                    }
+                }
+            } catch(e) {}
+
+            if (vueObj.$children) {
+                for (let i = 0; i < vueObj.$children.length; i++) {
+                    let res = search(vueObj.$children[i]);
+                    if (res) return res;
+                }
+            }
+            return null;
+        }
+        return search(app.__vue__);
+    }
+
+    /*
+     * Using MangaPlus's Webpack module cache, we can actively intercept class definitions
+     * and overwrite their prototypes with hooks to automatically apply our settings to any future Viewers.
+     */
+    function mppGetMangaPlusClasses() {
+        if (window.mppClasses) return window.mppClasses;
+
+        let req;
+        const wp = window.webpackJsonp = window.webpackJsonp || [];
+        wp.push([ [Symbol('mpp_extractor')], {
+            'mpp_extractor_module': function(m, e, r) { req = r; }
+        }, [['mpp_extractor_module']] ]);
+
+        if (!req || !req.c) return null;
+
+        for (let modId in req.c) {
+            const mod = req.c[modId];
+            if (mod && mod.exports && mod.exports.default) {
+                const def = mod.exports.default;
+                if (def.Viewer && def.UI && def.Slider) {
+                    window.mppClasses = def;
+                    return def;
+                }
+            }
+        }
+        return null;
+    }
+
+    function mppInitPreloadPatch() {
+        const classes = mppGetMangaPlusClasses();
+        // If Webpack exposed the viewer class and we haven't intercepted it yet...
+        if (classes && classes.Viewer && !classes.Viewer.prototype._mpp_preload_patched) {
+            const origCreateSurface = classes.Viewer.prototype.createSurface;
+
+            classes.Viewer.prototype.createSurface = function() {
+                const promise = origCreateSurface.apply(this, arguments);
+                window.mppViewer = this; // Capture the current viewer globally
+
+                if (promise && typeof promise.then === 'function') {
+                    promise.then(() => {
+                        const val = mppSettings.getOption(MPP_PRELOAD).getValue();
+                        this.viewerData.options.preloadCount = getPreloadCount(val);
+                        if (this.surface && typeof this.surface.preloadPages === 'function') {
+                            this.surface.preloadPages(this.surface.currentPageNumber || 1);
+                        }
+                    });
+                }
+                return promise;
+            };
+            classes.Viewer.prototype._mpp_preload_patched = true;
+        }
+    }
+
 
     /* Init html */
     function mppInitHtml(header)
@@ -840,7 +940,7 @@ div[class*="Viewer-module_viewerContainer"]
             if (collapsed) {
                 window.dispatchEvent(new Event('resize'));
             }
-        } catch { }
+        } catch(e) {}
 
         // Expand menu
         const htmlExpand = document.createElement("div");
@@ -852,7 +952,6 @@ div[class*="Viewer-module_viewerContainer"]
             window.dispatchEvent(new Event('resize'));
         }
 
-        // Attach to the parent of header (typically the wrapper)
         if(header.parentElement) {
             header.parentElement.appendChild(htmlExpand);
         }
@@ -867,7 +966,6 @@ div[class*="Viewer-module_viewerContainer"]
             window.dispatchEvent(new Event('resize'));
         }
 
-        // FIX: Insert before the first child, whatever it is (new Layout has a Container div)
         if(header.firstChild) {
             header.insertBefore(htmlCollapse, header.firstChild);
         } else {
@@ -877,7 +975,6 @@ div[class*="Viewer-module_viewerContainer"]
         // Comment link
         const htmlComments = document.createElement("div");
         htmlComments.className = "mpp-comments";
-        // Safe check for pathname
         let pathParts = window.location.pathname.split('/');
         let mangaId = pathParts.length > 2 ? pathParts[2] : "";
         htmlComments.innerHTML = `<a href="/comments/${mangaId}">Comments</a>`;
@@ -895,18 +992,12 @@ div[class*="Viewer-module_viewerContainer"]
 
         document.getElementById("mpp-nav-left").addEventListener("click", function(e)
         {
-            if(READ_HORIZONTAL.isEnabled())
-            {
-                keyEvent("ArrowLeft");
-            }
+            if(READ_HORIZONTAL.isEnabled()) keyEvent("ArrowLeft");
         });
 
         document.getElementById("mpp-nav-right").addEventListener("click", function(e)
         {
-            if(READ_HORIZONTAL.isEnabled())
-            {
-                keyEvent("ArrowRight");
-            }
+            if(READ_HORIZONTAL.isEnabled()) keyEvent("ArrowRight");
         });
 
         // Go forward on image click
@@ -940,10 +1031,10 @@ div[class*="Viewer-module_viewerContainer"]
             return;
         }
 
-        // Look for header until it's found and then initialize it
-        // We use "Navigation-module_header_" to match the outer container specifically
         var interval = setInterval(function()
         {
+            mppInitPreloadPatch(); // Hook into webpack continuously until valid!
+
             var header = mppGetElementByPartialClassName(document.getElementById("app"), "Navigation-module_header_");
             if (header)
             {
@@ -953,12 +1044,6 @@ div[class*="Viewer-module_viewerContainer"]
         }, 50);
     }
 
-    /*
-     * Constants
-     */
-    const MPP_ALT_NAV = "Alt Navigation";
-    const MPP_SHOW_PROG = "Progress Bar";
-    const READ_HORIZONTAL = new MppEnabledCondition("viewerMode", "horizontal"); // Reading mode condition
 
 
     var mppLoadedUrl = null;
@@ -968,10 +1053,12 @@ div[class*="Viewer-module_viewerContainer"]
     var mppSettings = (function()
     {
         var settings = new MppAdvancedOptionCollection();
+
         settings.addOption(new MppAdvancedOption(MPP_ALT_NAV, READ_HORIZONTAL, ["Off", "On"], 0, 0, function()
         {
             mppSetConditionalRootClass(mppSettings[MPP_ALT_NAV].getValue() == "On", "mpp-alt-nav");
         }));
+
         settings.addOption(new MppAdvancedOption(MPP_SHOW_PROG, READ_HORIZONTAL, ["Off", "On"], 0, 0, function()
         {
             if (mppSetConditionalRootClass(settings.getOption(MPP_SHOW_PROG).getValue() == "Off", "mpp-no-progress-bar"))
@@ -980,37 +1067,39 @@ div[class*="Viewer-module_viewerContainer"]
             }
         }));
 
+        settings.addOption(new MppAdvancedOption(MPP_PRELOAD, null, PRELOAD_OPTS, 0, 0, function()
+        {
+            if (!window.mppViewer) window.mppViewer = mppGetViewerFromVue();
+
+            if (window.mppViewer && window.mppViewer.surface) {
+                const count = getPreloadCount(this.getValue());
+                window.mppViewer.viewerData.options.preloadCount = count;
+                // Re-trigger preload queue with the new limit
+                window.mppViewer.surface.preloadPages(window.mppViewer.surface.currentPageNumber || 1);
+            }
+        }));
+
         return settings;
     })();
 
 
-
     /* HTML */
     window.addEventListener("load", mppInitApp);
-
     window.addEventListener("popstate", mppInitApp);
 
     // Allow context menu
-    window.addEventListener("contextmenu", e => {
-        e.stopPropagation();
-    }, true);
+    window.addEventListener("contextmenu", e => { e.stopPropagation(); }, true);
 
     // Allow middle mouse scrolling
     document.addEventListener("mousedown", function(e)
     {
-        if (e && (e.which == 2 || e.button == 4 ))
-        {
-            e.stopPropagation();
-        }
+        if (e && (e.which == 2 || e.button == 4 )) e.stopPropagation();
     }, true);
 
     // Allow page refresh
     document.addEventListener("keydown", function(e)
     {
-        if (e.key == "BrowserRefresh" || e.key == "F5" || e.key == "F11")
-        {
-            e.stopPropagation();
-        }
+        if (e.key == "BrowserRefresh" || e.key == "F5" || e.key == "F11") e.stopPropagation();
     }, true);
 
     // Refresh UI
@@ -1035,62 +1124,61 @@ div[class*="Viewer-module_viewerContainer"]
         }
     }, true);
 
+    // Initial backup trigger
+    // In case the prototype hook misses but Preload is toggled ON from prior localStorage state
+    setTimeout(() => {
+        const val = mppSettings.getOption(MPP_PRELOAD).getValue();
+        if (val !== "Default (5)") {
+            if (!window.mppViewer) window.mppViewer = mppGetViewerFromVue();
+            if (window.mppViewer && window.mppViewer.surface) {
+                window.mppViewer.viewerData.options.preloadCount = getPreloadCount(val);
+                window.mppViewer.surface.preloadPages(window.mppViewer.surface.currentPageNumber || 1);
+            }
+        }
+    }, 2000);
+
 })();
 
 (function() {
     function movePageNumber() {
-        // Find the page number element (Partial class match)
         const pageNumberEl = document.querySelector('p[class*="Viewer-module_pageNumber"]');
         if (!pageNumberEl) return;
 
-        // Find the target container (Updated for new layout)
         const targetContainer = document.querySelector('div[class*="Navigation-module_headerLeft"]');
         if (!targetContainer) return;
 
-        // Ensure we haven't already moved it
         if (targetContainer.contains(pageNumberEl)) return;
 
-        // Remove the page number from its current position
         if(pageNumberEl.parentNode) pageNumberEl.parentNode.removeChild(pageNumberEl);
-
-        // Append the page number into the target container
         targetContainer.appendChild(pageNumberEl);
 
-        // Optional: adjust the styling so it fits nicely
         pageNumberEl.style.position = 'static';
         pageNumberEl.style.marginTop = '0.5em';
     }
 
-    // Wait for the page to load and elements to be available
     window.addEventListener('load', () => {
-        // Run immediately in case elements are present
         movePageNumber();
-
-        // In case elements load dynamically, check a few times:
         let tries = 0;
         const interval = setInterval(() => {
             movePageNumber();
             tries++;
-            if (tries > 10) {
-                clearInterval(interval);
-            }
+            if (tries > 10) clearInterval(interval);
         }, 500);
     });
 })();
 
 document.addEventListener("keydown", function(e) {
-    // Only act on up/down arrows
     if (e.key !== "ArrowDown" && e.key !== "ArrowUp" && e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
 
     const containers = document.querySelectorAll(".zao-pages-container");
     if (!containers) return;
 
-    const scrollAmount = 200; // Adjust as needed
+    const scrollAmount = 200;
     if (e.key === "ArrowDown") {
         containers.forEach(container => container.scrollTop += scrollAmount);
     } else if (e.key === "ArrowUp" || e.key === "ArrowLeft" || e.key === "ArrowRight") {
         containers.forEach(container => container.scrollTop -= scrollAmount);
     }
 
-    e.preventDefault(); // Prevent default page scrolling
+    e.preventDefault();
 }, { passive: false });
