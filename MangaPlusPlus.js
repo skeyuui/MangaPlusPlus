@@ -1,15 +1,13 @@
 // ==UserScript==
 // @name         MangaPlusPlus
 // @namespace    http://tampermonkey.net/
-// @version      1.3.1
-// @description  Overhaul for the MangaPlus reader
-// @author       Somebody
+// @version      1.5
+// @description  Overhaul for the MangaPlus reader - Fixed Settings Modal & Language Button
+// @author       Somebody (Fixed by Assistant)
 // @match        https://mangaplus.shueisha.co.jp/*
 // @run-at       document-body
 // @grant        none
 // ==/UserScript==
-
-
 
 /* STYLE */
 (function (css)
@@ -18,6 +16,20 @@
     style.innerHTML = css;
     document.head.appendChild(style);
 })(`
+/*
+ * CUSTOM HORIZONTAL MODE
+ */
+.zao-image {
+    height: auto !important;
+    max-height: none !important;
+}
+
+.zao-pages-container {
+    overflow: auto !important;
+    align-items: start !important;
+    margin-top: 5px !important;
+    margin-bottom: 5px !important;
+}
 
 /*
  * FIX FOR BACKGROUND COLOR ON FIRST PAGE
@@ -27,29 +39,69 @@
     background-color: transparent !important;
 }
 
-
 /*
- * SETTINGS
+ * SETTINGS MODAL (MangaPlus Original Modal) - FIX
+ * Forces the modal to center screen and break out of sidebar overflow
  */
 div[class*="Modal-module_modal"]
 {
-    z-index: 5 !important;
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 10001 !important;
+    background-color: var(--color-dark-gray) !important;
+    /* Ensure default background doesn't override */
+    background: #191919 !important;
+    border: 1px solid var(--color-gray) !important;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5) !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    width: auto !important;
+    min-width: 300px;
+    right: unset !important;
+    bottom: unset !important;
+    margin: 0 !important;
 }
-div[class*="Modal-module_settings"]
-{
-    background: var(--color-dark-gray) !important;
-}
-div[class*="Modal-module_modal"]
-{
-    background-color: #000d !important;
-}
-
-
 
 /*
- * HEADER
+ * SETTINGS MODAL OVERLAY (Background)
+ * Forces the dim background to cover the whole screen
  */
-div[class*="Navigation-module_header"]
+div[class*="Modal-module_sideMenuBackground"]
+{
+    position: fixed !important;
+    top: 0 !important; left: 0 !important;
+    width: 100vw !important; height: 100vh !important;
+    z-index: 10000 !important;
+    background-color: rgba(0,0,0,0.7) !important;
+}
+
+/*
+ * LANGUAGE MODAL FIX
+ */
+div[class*="LanguageModal-module_modal"]
+{
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 10001 !important;
+    background-color: var(--color-dark-gray) !important;
+    border: 1px solid var(--color-gray) !important;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5) !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    width: auto !important;
+    min-width: 300px;
+    right: unset !important;
+    bottom: unset !important;
+}
+
+/*
+ * HEADER / SIDEBAR CONTAINER
+ */
+div[class*="Navigation-module_header_"]
 {
     display: flex !important;
     flex-direction: column !important;
@@ -65,12 +117,53 @@ div[class*="Navigation-module_header"]
     box-sizing: content-box !important;
     box-shadow: unset !important;
     -webkit-box-shadow: unset !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
 }
-.mpp-menu-collapsed div[class*="Navigation-module_header"]
+
+/*
+ * INTERNAL WRAPPERS FIX
+ */
+div[class*="Navigation-module_header_"] > div[class*="Container-module_container"],
+div[class*="Navigation-module_headerContainer"]
+{
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: static !important;
+}
+
+/*
+ * HEADER LEFT (Logo + Title)
+ */
+div[class*="Navigation-module_headerLeft"]
+{
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    align-items: center !important;
+}
+
+/*
+ * HEADER RIGHT (Language + Settings)
+ */
+div[class*="Navigation-module_headerRight"]
+{
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+}
+
+
+.mpp-menu-collapsed div[class*="Navigation-module_header_"]
 {
     display: none !important;
 }
-.mpp-no-progress-bar div[class*="Navigation-module_header"]
+.mpp-no-progress-bar div[class*="Navigation-module_header_"]
 {
     height: calc(var(--vh, 1vh) * 100) !important;
 }
@@ -79,7 +172,7 @@ div[class*="Navigation-module_header"]
 /*
  * MENU BUTTON
  */
-.mpp-expand 
+.mpp-expand
 {
     position: absolute;
     display: none;
@@ -93,7 +186,7 @@ div[class*="Navigation-module_header"]
     opacity: 0.5;
     cursor: pointer;
 }
-.mpp-expand:hover 
+.mpp-expand:hover
 {
     opacity: 1;
 }
@@ -106,7 +199,7 @@ div[class*="Navigation-module_header"]
 /*
  * HEADER: LOGO AND COLLAPSE
  */
-.mpp-collapse 
+.mpp-collapse
 {
     display: flex;
     align-items: center;
@@ -114,6 +207,10 @@ div[class*="Navigation-module_header"]
     padding: 1em;
     cursor: pointer;
     border-right: 1px solid var(--color-gray);
+    min-height: 40px;
+    background-color: var(--color-dark-gray);
+    width: 100%;
+    box-sizing: border-box;
 }
 div[class*="Navigation-module_imageContainer"]
 {
@@ -121,6 +218,9 @@ div[class*="Navigation-module_imageContainer"]
     flex-direction: row !important;
     margin: 0 !important;
     flex-grow: 0 !important;
+    width: 100% !important;
+    justify-content: center !important;
+    border-bottom: 1px solid var(--color-gray) !important;
 }
 div[class*="Navigation-module_imageContainer"] a
 {
@@ -140,9 +240,9 @@ img[class*="Navigation-module_logo"]
 
 
 /*
- * HEADER: SERIES TITLE AND CHAPTER
+ * HEADER: SERIES TITLE
  */
-div[class*="Navigation-module_detailContainer"]
+div[class*="Navigation-module_headerLeft"] > a[href*="/titles/"]
 {
     display: block !important;
     flex-direction: row !important;
@@ -152,73 +252,165 @@ div[class*="Navigation-module_detailContainer"]
     box-sizing: border-box;
     border-top: 1px solid var(--color-gray) !important;
     padding: 1em !important;
-    flex-wrap: wrap !important;
-    flex-basis: unset !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: min-content !important;
+    overflow: visible !important;
 }
-div[class*="Navigation-module_detailContainer"] h1
+
+div[class*="Navigation-module_headerLeft"] h1
 {
     font-size: 1.2em !important;
-    line-height: unset !important;
+    line-height: 1.4em !important;
     padding: 0 !important;
-    height: unset !important;
+    height: auto !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
 }
-div[class*="Navigation-module_detailContainer"] a
-{
-    display: block !important;
-}
+
+/*
+ * HEADER: CHAPTER TITLE (No Arrow)
+ */
 div[class*="Navigation-module_chapterTitleWrapper"]
 {
     width: 100%;
-    padding-right: unset !important;
-    display: block;
+    padding: 1em !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
     margin-top: 8px;
+    box-sizing: border-box;
+    position: relative !important;
+    min-height: 3em !important;
 }
+
+/* Text Styling */
 p[class*="Navigation-module_chapterTitle"]
 {
-    width: 100%;
+    width: auto !important;
     display: block !important;
     font-size: 1.1em !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    flex-grow: 0 !important;
+    line-height: 1 !important;
 }
-div[class*="Navigation-module_chapterTitleWrapper"]:hover,
-div[class*="Navigation-module_detailContainer"] a:hover
+
+/* Remove Arrow */
+img[class*="Navigation-module_downArrowIcon"]
 {
-    opacity: var(--hover-opacity);
+    display: none !important;
+}
+
+/* Dropdown Container Fix */
+div[class*="Navigation-module_chapterTitleWrapper"] > div
+{
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    width: 100% !important;
+    z-index: 100 !important;
+}
+
+div[class*="Navigation-module_chapterTitleWrapper"]:hover,
+div[class*="Navigation-module_headerLeft"] > a:hover
+{
+    opacity: var(--hover-opacity, 0.7);
 }
 p[class*="Navigation-module_chapterTitle"]::after
 {
     display: none !important;
 }
-div[class*="SideMenu-module_sideMenu_"] {
-    background-color: #000d;
-    z-index: 4;
-}
-div[class*="SideMenu-module_modal_"] {
-    background: var(--color-dark-gray) !important;
-}
 
 /*
- * HEADER: LANGUAGE BUTTON
+ * HEADER: LANGUAGE BUTTON (FIXED v7 - With Text)
  */
 div[class*="Navigation-module_languageButton"]
 {
-    padding: 0 !important;
-    margin: 0 1em 1em auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important; /* Icon to right */
+    padding: 1em !important;
+    margin: 0 !important;
+    border-top: 1px solid var(--color-gray) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
-    
+
+div[class*="Navigation-module_languageButton"]::before
+{
+    content: "Language";
+    margin-right: auto; /* Pushes icon to the right */
+    font-size: 1em;
+    font-family: Roboto, sans-serif;
+    color: #fff;
+}
+
+/* Ensure inner SVG container doesn't break flex */
+div[class*="LanguageButton-module_svgContainer"]
+{
+    flex-grow: 0 !important;
+}
+
+div[class*="Navigation-module_languageButton"]:hover
+{
+    background-color: var(--color-gray) !important;
+    cursor: pointer;
+}
+
 /*
- * HEADER: SETTINGS BUTTON
+ * HEADER: SETTINGS BUTTON REPLACEMENT
  */
 div[class*="Navigation-module_settingsContainer"]
 {
-    flex-grow: 1 !important;
+    flex-grow: 0 !important;
     border-top: 1px solid var(--color-gray) !important;
     padding: 1em !important;
     flex-basis: unset !important;
+    width: 100% !important;
+    box-sizing: border-box;
+    display: flex !important;
+    align-items: center !important;
+    cursor: pointer;
+    text-align: left !important;
+    position: relative !important;
 }
+
+/* Hide the Gear Icon */
+img[class*="Navigation-module_settingLogo"]
+{
+    display: none !important;
+}
+
+/* Add Text "MangaPlus Settings" */
+div[class*="Navigation-module_settingsContainer"]::before
+{
+    content: "MangaPlus Settings";
+    font-size: 1em;
+    font-family: Roboto, sans-serif;
+    color: #fff;
+    text-transform: none;
+    font-weight: normal;
+}
+
 div[class*="Navigation-module_settingsContainer"]:hover
 {
-    background-color: var(--color-gray);
+    background-color: var(--color-gray) !important;
 }
+
+/*
+ * Settings Modal Injection Anchor Fix
+ * Ensures the internal anchor for the modal doesn't break layout
+ */
+div[class*="Navigation-module_settingsContainer"] > div
+{
+    position: static !important;
+}
+
+
 div[class*="Navigation-module_kebabMenu"]
 {
     margin: 0 !important;
@@ -243,6 +435,7 @@ div[class*="Navigation-module_circle"]
 div.mpp-comments
 {
     border-top: 1px solid var(--color-gray);
+    flex-shrink: 0;
 }
 div.mpp-comments a
 {
@@ -263,7 +456,7 @@ div.mpp-settings
     border-top: 1px solid var(--color-gray);
     padding: 1em;
     flex-grow: 99999;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 div.mpp-settings h2
 {
@@ -304,6 +497,7 @@ div.mpp-nav
     flex-direction: row;
     align-items: stretch;
     border-top: 1px solid var(--color-gray);
+    flex-shrink: 0;
 }
 
 div.mpp-nav-btn
@@ -338,12 +532,13 @@ div.mpp-nav-btn:hover
 p[class*="Viewer-module_pageNumber"]
 {
     font-size: 1em !important;
-    position: fixed !important;
+    position: unset !important;
     bottom: calc(10px + 1em) !important;
-    width: calc(18em + 6px) !important;
+    width: 100% !important;
     right: 0 !important;
     line-height: unset !important;
-    display: none !important;
+    text-align: center;
+    padding: 0.5em 0;
 }
 
 
@@ -642,7 +837,7 @@ div[class*="Viewer-module_viewerContainer"]
         try {
             const collapsed = window.localStorage.getItem("mpp-menu-collapsed") === "1";
             mppSetConditionalRootClass(collapsed, "mpp-menu-collapsed");
-            if (collapsed) {                
+            if (collapsed) {
                 window.dispatchEvent(new Event('resize'));
             }
         } catch { }
@@ -656,7 +851,11 @@ div[class*="Viewer-module_viewerContainer"]
             localStorage.setItem("mpp-menu-collapsed", "0");
             window.dispatchEvent(new Event('resize'));
         }
-        header.parentElement.appendChild(htmlExpand);
+
+        // Attach to the parent of header (typically the wrapper)
+        if(header.parentElement) {
+            header.parentElement.appendChild(htmlExpand);
+        }
 
         // Collapse menu
         const htmlCollapse = document.createElement("div");
@@ -667,12 +866,21 @@ div[class*="Viewer-module_viewerContainer"]
             localStorage.setItem("mpp-menu-collapsed", "1");
             window.dispatchEvent(new Event('resize'));
         }
-        header.firstChild.insertBefore(htmlCollapse, header.firstChild.firstChild);
+
+        // FIX: Insert before the first child, whatever it is (new Layout has a Container div)
+        if(header.firstChild) {
+            header.insertBefore(htmlCollapse, header.firstChild);
+        } else {
+            header.appendChild(htmlCollapse);
+        }
 
         // Comment link
         const htmlComments = document.createElement("div");
         htmlComments.className = "mpp-comments";
-        htmlComments.innerHTML = `<a href="/comments/${window.location.pathname.split('/').at(2)}">Comments</a>`;
+        // Safe check for pathname
+        let pathParts = window.location.pathname.split('/');
+        let mangaId = pathParts.length > 2 ? pathParts[2] : "";
+        htmlComments.innerHTML = `<a href="/comments/${mangaId}">Comments</a>`;
         header.appendChild(htmlComments);
 
         // Settings
@@ -702,18 +910,21 @@ div[class*="Viewer-module_viewerContainer"]
         });
 
         // Go forward on image click
-        document.getElementsByClassName("zao")[0].addEventListener("click", function(e)
-        {
-            if (mppSettings[MPP_ALT_NAV].getValue() == "On")
+        let zao = document.getElementsByClassName("zao")[0];
+        if(zao) {
+            zao.addEventListener("click", function(e)
             {
-                e.stopPropagation();
-
-                if (e.target.className == "zao-image")
+                if (mppSettings[MPP_ALT_NAV].getValue() == "On")
                 {
-                    keyEvent("ArrowLeft");
+                    e.stopPropagation();
+
+                    if (e.target.className == "zao-image")
+                    {
+                        keyEvent("ArrowLeft");
+                    }
                 }
-            }
-        }, true);
+            }, true);
+        }
     }
 
     function mppInitApp()
@@ -730,9 +941,10 @@ div[class*="Viewer-module_viewerContainer"]
         }
 
         // Look for header until it's found and then initialize it
+        // We use "Navigation-module_header_" to match the outer container specifically
         var interval = setInterval(function()
         {
-            var header = mppGetElementByPartialClassName(document.getElementById("app"), "Navigation-module_header");
+            var header = mppGetElementByPartialClassName(document.getElementById("app"), "Navigation-module_header_");
             if (header)
             {
                 clearInterval(interval);
@@ -740,10 +952,6 @@ div[class*="Viewer-module_viewerContainer"]
             }
         }, 50);
     }
-
-
-
-
 
     /*
      * Constants
@@ -760,11 +968,11 @@ div[class*="Viewer-module_viewerContainer"]
     var mppSettings = (function()
     {
         var settings = new MppAdvancedOptionCollection();
-        settings.addOption(new MppAdvancedOption(MPP_ALT_NAV, READ_HORIZONTAL, ["Off", "On"], 0, 1, function()
+        settings.addOption(new MppAdvancedOption(MPP_ALT_NAV, READ_HORIZONTAL, ["Off", "On"], 0, 0, function()
         {
             mppSetConditionalRootClass(mppSettings[MPP_ALT_NAV].getValue() == "On", "mpp-alt-nav");
         }));
-        settings.addOption(new MppAdvancedOption(MPP_SHOW_PROG, READ_HORIZONTAL, ["Off", "On"], 0, 1, function()
+        settings.addOption(new MppAdvancedOption(MPP_SHOW_PROG, READ_HORIZONTAL, ["Off", "On"], 0, 0, function()
         {
             if (mppSetConditionalRootClass(settings.getOption(MPP_SHOW_PROG).getValue() == "Off", "mpp-no-progress-bar"))
             {
@@ -819,10 +1027,70 @@ div[class*="Viewer-module_viewerContainer"]
                 }
 
                 mppSettings.update();
-                mppSetConditionalClass(document.getElementById("mpp-nav-left"), !READ_HORIZONTAL.isEnabled(), "mpp-disabled");
-                mppSetConditionalClass(document.getElementById("mpp-nav-right"), !READ_HORIZONTAL.isEnabled(), "mpp-disabled");
+                var left = document.getElementById("mpp-nav-left");
+                var right = document.getElementById("mpp-nav-right");
+                if(left) mppSetConditionalClass(left, !READ_HORIZONTAL.isEnabled(), "mpp-disabled");
+                if(right) mppSetConditionalClass(right, !READ_HORIZONTAL.isEnabled(), "mpp-disabled");
             }, 500);
         }
     }, true);
 
 })();
+
+(function() {
+    function movePageNumber() {
+        // Find the page number element (Partial class match)
+        const pageNumberEl = document.querySelector('p[class*="Viewer-module_pageNumber"]');
+        if (!pageNumberEl) return;
+
+        // Find the target container (Updated for new layout)
+        const targetContainer = document.querySelector('div[class*="Navigation-module_headerLeft"]');
+        if (!targetContainer) return;
+
+        // Ensure we haven't already moved it
+        if (targetContainer.contains(pageNumberEl)) return;
+
+        // Remove the page number from its current position
+        if(pageNumberEl.parentNode) pageNumberEl.parentNode.removeChild(pageNumberEl);
+
+        // Append the page number into the target container
+        targetContainer.appendChild(pageNumberEl);
+
+        // Optional: adjust the styling so it fits nicely
+        pageNumberEl.style.position = 'static';
+        pageNumberEl.style.marginTop = '0.5em';
+    }
+
+    // Wait for the page to load and elements to be available
+    window.addEventListener('load', () => {
+        // Run immediately in case elements are present
+        movePageNumber();
+
+        // In case elements load dynamically, check a few times:
+        let tries = 0;
+        const interval = setInterval(() => {
+            movePageNumber();
+            tries++;
+            if (tries > 10) {
+                clearInterval(interval);
+            }
+        }, 500);
+    });
+})();
+
+document.addEventListener("keydown", function(e) {
+    // Only act on up/down arrows
+    if (e.key !== "ArrowDown" && e.key !== "ArrowUp" && e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+
+    const containers = document.querySelectorAll(".zao-pages-container");
+    if (!containers) return;
+
+    const scrollAmount = 200; // Adjust as needed
+    if (e.key === "ArrowDown") {
+        containers.forEach(container => container.scrollTop += scrollAmount);
+    } else if (e.key === "ArrowUp" || e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        containers.forEach(container => container.scrollTop -= scrollAmount);
+    }
+
+    e.preventDefault(); // Prevent default page scrolling
+}, { passive: false });
